@@ -3,14 +3,14 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
-
+from django.utils import timezone
 
 class Actualizaciones(models.Model):
     id_actualizacion = models.AutoField(primary_key=True)
     id_tarea = models.ForeignKey('Tareas', models.DO_NOTHING, db_column='id_tarea')
     id_usuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario')
     mensaje = models.TextField()
-    fecha = models.DateTimeField(auto_now_add=True)
+    fecha = models.DateTimeField(default=timezone.now, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -34,7 +34,7 @@ class Equipos(models.Model):
     id_equipo = models.AutoField(primary_key=True)
     nombre_equipo = models.CharField(max_length=100)
     descripcion = models.TextField()
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -93,7 +93,7 @@ class Tareas(models.Model):
     id_tablero = models.ForeignKey(Tableros, models.DO_NOTHING, db_column='id_tablero')
     id_usuario_asignado = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario_asignado')
     datos = models.JSONField()
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
 
     class Meta:
         managed = False
@@ -109,7 +109,7 @@ class Usuarios(models.Model):
     usuario = models.CharField(unique=True, max_length=30)
     contrasena = models.TextField()
     id_rol = models.ForeignKey('Roles', models.DO_NOTHING, db_column='id_rol')
-    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
 
     class Meta:
         db_table = 'usuarios'
