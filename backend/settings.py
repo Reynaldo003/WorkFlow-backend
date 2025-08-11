@@ -37,10 +37,6 @@ CORS_ALLOWED_ORIGINS = [
     "https://work-flow-frontend.vercel.app",
 ]
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
