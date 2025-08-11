@@ -26,8 +26,17 @@ SECRET_KEY = 'django-insecure-_903w8$ox6n&x)^w27*1jo4!w69%lh5squ^a*1nk2+12ck3yex
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["https://work-flow-frontend.vercel.app/", "https://workflow-backend-production-991d.up.railway.app/", "localhost", "127.0.0.1"]
-#ALLOWED_HOSTS = ["tu-app.up.railway.app", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = [
+    "work-flow-frontend.vercel.app",
+    "workflow-backend-production-991d.up.railway.app",
+    "localhost",
+    "127.0.0.1"
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://work-flow-frontend.vercel.app",
+]
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -66,19 +75,16 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "https://work-flow-frontend.vercel.app/",
-]
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
