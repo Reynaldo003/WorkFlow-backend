@@ -14,8 +14,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 @api_view(['POST'])
-@authentication_classes([TokenAuthentication])   # Validar token DRF
-@permission_classes([AllowAny])            # Exigir usuario autenticado
+@permission_classes([AllowAny])
 def login(request):
     user = get_object_or_404(User, username=request.data['usuario'])
 
