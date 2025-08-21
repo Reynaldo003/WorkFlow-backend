@@ -92,7 +92,7 @@ def invitar_usuario(request, id_equipo):
         mensaje = f"""Ha sido añadido al equipo de trabajo: {equipo.nombre_equipo} en WorkFlow.\n
         Use sus credenciales de acceso existentes para visualizar su nuevo equipo de trabajo.
 
-        Puede Inciar Sesion aqui: http://localhost:5173/loginregistro
+        Puede Inciar Sesion aqui: https://work-flow-frontend.vercel.app/automatizaciones
 
         Por seguridad, al iniciar sesion cambie su contraseña."""
         
