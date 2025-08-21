@@ -30,8 +30,7 @@ ALLOWED_HOSTS = [
     "work-flow-frontend.vercel.app",
     "workflow-backend-production-991d.up.railway.app",
     "localhost",
-    "127.0.0.1",
-    "localhost:5173"
+    "127.0.0.1"
 ]
 
 CORS_ALLOWED_ORIGINS = [
