@@ -10,7 +10,7 @@ class Actualizaciones(models.Model):
     id_tarea = models.ForeignKey('Tareas', models.DO_NOTHING, db_column='id_tarea')
     id_usuario = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario')
     mensaje = models.TextField()
-    fecha = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    fecha = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -23,7 +23,7 @@ class Automatizaciones(models.Model):
     tipo = models.CharField(max_length=50)
     regla = models.JSONField()
     accion = models.JSONField()
-    id_tablero = models.ForeignKey('Tableros', models.DO_NOTHING, db_column='id_tablero')
+    id_tablero = models.ForeignKey('Archivos', models.DO_NOTHING, db_column='id_archivo')
 
     class Meta:
         managed = False
@@ -34,7 +34,7 @@ class Equipos(models.Model):
     id_equipo = models.AutoField(primary_key=True)
     nombre_equipo = models.CharField(max_length=100)
     descripcion = models.TextField()
-    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -72,28 +72,29 @@ class Roles(models.Model):
         managed = False
         db_table = 'roles'
 
-
-class Tableros(models.Model):
-    id_tablero = models.AutoField(primary_key=True)
-    id_plantilla = models.ForeignKey(Plantillas, models.DO_NOTHING, db_column='id_plantilla')
+class Archivos(models.Model):
+    id_archivo = models.AutoField(primary_key=True)
+    # 'tablero' | 'word' | 'excel'  (puedes ampliar: 'powerbi', etc.)
+    tipo = models.CharField(max_length=20)
     titulo = models.CharField(max_length=100)
-    descripcion = models.TextField()
-    estructura = models.JSONField()
-    id_equipo = models.ForeignKey(Equipos, models.DO_NOTHING, db_column='id_equipo')
+    descripcion = models.TextField(default="")
+    estructura = models.JSONField()                 # HTML (word), AOA (excel), cols/rows (tablero)
+    id_equipo = models.ForeignKey('Equipos', models.DO_NOTHING, db_column='id_equipo')
+    id_plantilla = models.ForeignKey('Plantillas', models.DO_NOTHING, db_column='id_plantilla', null=True, blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
-        db_table = 'tableros'
+        db_table = 'archivos'
 
 
 class Tareas(models.Model):
     id_tarea = models.AutoField(primary_key=True)
     titulo = models.CharField(max_length=100)
-    id_tablero = models.ForeignKey(Tableros, models.DO_NOTHING, db_column='id_tablero')
+    id_tablero = models.ForeignKey('Archivos', models.DO_NOTHING, db_column='id_archivo')
     id_usuario_asignado = models.ForeignKey('Usuarios', models.DO_NOTHING, db_column='id_usuario_asignado')
     datos = models.JSONField()
-    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         managed = False
@@ -109,7 +110,7 @@ class Usuarios(models.Model):
     usuario = models.CharField(unique=True, max_length=30)
     contrasena = models.TextField()
     id_rol = models.ForeignKey('Roles', models.DO_NOTHING, db_column='id_rol')
-    fecha_creacion = models.DateTimeField(default=timezone.now, auto_now_add=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'usuarios'

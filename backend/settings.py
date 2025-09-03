@@ -35,7 +35,12 @@ ALLOWED_HOSTS = [
 
 CORS_ALLOWED_ORIGINS = [
     "https://work-flow-frontend.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:8000"
 ]
+
+CORS_ALLOW_CREDENTIALS = True
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -105,13 +110,21 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+#    'default': {
+#        'ENGINE': 'django.db.backends.postgresql',
+#        'NAME': 'railway',
+#        'USER': 'postgres',
+#        'PASSWORD': 'vpuIeBTFkVgQECjMssocdAdEjLdUEdKU',
+#        'HOST': 'mainline.proxy.rlwy.net',
+#        'PORT': '13069'
+#    }
+'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'railway',
+        'NAME': 'adminDB',
         'USER': 'postgres',
-        'PASSWORD': 'vpuIeBTFkVgQECjMssocdAdEjLdUEdKU',
-        'HOST': 'mainline.proxy.rlwy.net',
-        'PORT': '13069'
+        'PASSWORD': '1234',
+        'HOST': 'localhost',
+        'PORT': '5432'
     }
 }
 

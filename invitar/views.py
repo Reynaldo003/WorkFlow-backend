@@ -19,7 +19,6 @@ from core.models import Equipos, Usuarios, UsuariosEquipos, Roles
 logger = logging.getLogger(__name__)
 
 def _generate_password(length=10):
-    # token_urlsafe genera una cadena segura; recortamos a length
     return secrets.token_urlsafe(length)[:length]
 
 @api_view(['POST'])
@@ -32,10 +31,8 @@ def invitar_usuario(request, id_equipo):
     
     if not correo:
         return Response({"error": "Email requerido"}, status=status.HTTP_400_BAD_REQUEST)
-    # validar equipo
     equipo = get_object_or_404(Equipos, id_equipo=id_equipo)
 
-    # Buscar o crear usuario Django
     try:
         user = User.objects.filter(username=correo).first()
         created_user = False
@@ -47,16 +44,12 @@ def invitar_usuario(request, id_equipo):
             user.save()
             created_user = True
         else:
-            # no exponemos ni cambiamos password si ya existía
             raw_password = None
 
-        # Asegurarnos de que haya un role por defecto
         role = Roles.objects.first()
         if not role:
-            # crear un role por defecto si no existe
             role = Roles.objects.create(nombre_rol="Usuario")
 
-        # Crear o actualizar perfil Usuarios
         perfil, created_perfil = Usuarios.objects.get_or_create(
             user=user,
             defaults={
@@ -68,8 +61,6 @@ def invitar_usuario(request, id_equipo):
                 "id_rol": role
             }
         )
-        # Asociar a equipo (UsuariosEquipos)
-        # Verificamos si ya existe la relación
         relacion = UsuariosEquipos.objects.filter(id_usuario=perfil, id_equipo=equipo).first()
         if not relacion:
             UsuariosEquipos.objects.create(id_usuario=perfil, id_equipo=equipo)
@@ -79,9 +70,9 @@ def invitar_usuario(request, id_equipo):
         return Response({"error": "Error al crear usuario"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     remitente = 'workflow2709@gmail.com'
-    destinatario = correo #puede ser para varios ['','']
+    destinatario = correo
     mensaje = f"""Ha sido invitado al equipo de trabajo: {equipo.nombre_equipo} en WorkFlow.\n
-    Su usuario es: {user}.
+    Su usuario es: {user}
     Su contraseña temporal: {raw_password}
     
     Puede Inciar Sesion aqui: http://localhost:5173/loginregistro
@@ -122,3 +113,4 @@ def invitar_usuario(request, id_equipo):
         "email": correo,
         "equipo": equipo.nombre_equipo
     }, status=status.HTTP_200_OK)
+

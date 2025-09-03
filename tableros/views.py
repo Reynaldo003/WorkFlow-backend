@@ -3,76 +3,92 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from core.models import Tableros, Equipos, Plantillas
+from core.models import Equipos, Plantillas, Archivos
 from django.shortcuts import get_object_or_404
+# views.py
+from django.db import transaction
+
+DEFAULT_PLANTILLA = {
+    "word":    2,   # <- pon aquí el id real de la plantilla default para Word
+    "excel":   3,   # <- id real para Excel
+    "tablero": 1,   # <- id real para Tablero (ej. tu Kanban Básico)
+}
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def crear_tablero(request):
-    """
-    Crea un tablero usando la estructura de una plantilla existente.
-    """
+@transaction.atomic
+def crear_archivo(request):
+    tipo = request.data.get("tipo")
     titulo = request.data.get("titulo")
     descripcion = request.data.get("descripcion", "")
     id_equipo = request.data.get("id_equipo")
-    id_plantilla = request.data.get("id_plantilla", 1)  # si no envía, usa plantilla 1
+    id_plantilla = request.data.get("id_plantilla")
 
-    if not titulo or not id_equipo:
-        return Response({"error": "Título e id_equipo son obligatorios"}, status=status.HTTP_400_BAD_REQUEST)
+    # Validaciones básicas
+    if tipo not in ["word","excel","tablero"] or not titulo or not id_equipo:
+        return Response({"error": "Datos inválidos"}, status=400)
 
     equipo = get_object_or_404(Equipos, id_equipo=id_equipo)
+
+    # Resolver plantilla obligatoria (NOT NULL):
+    # 1) Si viene id_plantilla úsalo; 2) si no, usa el default por tipo.
+    if not id_plantilla:
+        id_plantilla = DEFAULT_PLANTILLA.get(tipo)
+        if not id_plantilla:
+            return Response({"error": f"No hay plantilla por defecto para tipo={tipo}"}, status=400)
+
     plantilla = get_object_or_404(Plantillas, id_plantilla=id_plantilla)
 
-    tablero = Tableros.objects.create(
+    # Opcional: valida que la plantilla sea del tipo esperado (si tu modelo Plantillas tiene campo tipo)
+    # if plantilla.tipo != tipo: return Response({"error": "La plantilla no coincide con el tipo"}, status=400)
+
+    # La estructura inicial proviene SIEMPRE de la plantilla seleccionada
+    estructura_base = plantilla.estructura
+
+    arc = Archivos.objects.create(
+        tipo=tipo,
         titulo=titulo,
         descripcion=descripcion,
         id_equipo=equipo,
-        id_plantilla=plantilla,
-        estructura = {"columns": [], "rows": []}
+        id_plantilla=plantilla,     # <- nunca NULL
+        estructura=estructura_base,
+    )
+    return Response(
+        {"id_archivo": arc.id_archivo, "tipo": arc.tipo, "estructura": arc.estructura},
+        status=201
     )
 
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def obtener_archivo(request, id_archivo):
+    arc = get_object_or_404(Archivos, id_archivo=id_archivo)
     return Response({
-        "id_tablero": tablero.id_tablero,
-        "titulo": tablero.titulo,
-        "descripcion": tablero.descripcion,
-        "estructura": tablero.estructura
-    }, status=status.HTTP_201_CREATED)
+        "id_archivo": arc.id_archivo, "tipo": arc.tipo, "titulo": arc.titulo,
+        "descripcion": arc.descripcion, "estructura": arc.estructura
+    })
 
 
 @api_view(['PATCH'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def actualizar_estructura_tablero(request, id_tablero):
-    tablero = get_object_or_404(Tableros, id_tablero=id_tablero)
-    nueva_estructura = request.data.get("estructura")
-
-    if not isinstance(nueva_estructura, dict):
-        return Response({"error": "La estructura debe ser un objeto JSON"}, status=status.HTTP_400_BAD_REQUEST)
-
-    tablero.estructura = nueva_estructura
-    tablero.save()
-    return Response({"msg": "Estructura actualizada"})
+def actualizar_estructura_archivo(request, id_archivo):
+    arc = get_object_or_404(Archivos, id_archivo=id_archivo)
+    body = request.data.get("estructura")
+    if not isinstance(body, dict):
+        return Response({"error":"La estructura debe ser JSON"}, status=400)
+    arc.estructura = body
+    arc.save()
+    return Response({"msg":"Estructura actualizada"})
 
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
-def obtener_tablero(request, id_tablero):
-    tablero = get_object_or_404(Tableros, id_tablero=id_tablero)
-    return Response({
-        "id_tablero": tablero.id_tablero,
-        "titulo": tablero.titulo,
-        "estructura": tablero.estructura or {"columns": [], "rows": []}
-    })
-
-
-@api_view(['GET'])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def listar_tableros_equipo(request, id_equipo):
-    equipo = get_object_or_404(Equipos, id_equipo=id_equipo)
-    tableros = Tableros.objects.filter(id_equipo=equipo).values(
-        "id_tablero", "titulo", "descripcion"
+def listar_archivos_equipo(request, id_equipo):
+    qs = Archivos.objects.filter(id_equipo=id_equipo).values(
+        "id_archivo", "tipo", "titulo"
     )
-    return Response({"tableros": list(tableros)})
+    return Response({"archivos": list(qs)})
