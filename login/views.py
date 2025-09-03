@@ -35,3 +35,74 @@ def login(request):
 def profile(request):
     return Response({})
 
+@api_view(['GET', 'PATCH'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def profile(request):
+    """
+    GET:  Devuelve el perfil del usuario logueado.
+    PATCH: Actualiza campos del perfil (nombre, apellido, correo, usuario).
+           Solo admin puede cambiar id_rol.
+    """
+    try:
+        usuario_extra = Usuarios.objects.select_related('id_rol').get(user=request.user)
+    except Usuarios.DoesNotExist:
+        return Response({"detail": "Perfil no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+    # Helper para serializar respuesta
+    def serialize(u: Usuarios):
+        return {
+            "id_usuario": str(u.id_usuario),
+            "nombre": u.nombre,
+            "apellido": u.apellido,
+            "correo": u.correo,
+            "usuario": u.usuario,
+            "id_rol": getattr(u.id_rol, "id_rol", None),
+            "rol_nombre": getattr(u.id_rol, "nombre", None),
+            "is_superuser": request.user.is_superuser,
+        }
+
+    if request.method == 'GET':
+        return Response(serialize(usuario_extra), status=status.HTTP_200_OK)
+
+    # PATCH
+    data = request.data
+    # Campos editables para cualquier usuario:
+    updatable = ["nombre", "apellido", "correo", "usuario"]
+
+    # Actualiza campos básicos
+    changed = False
+    if "nombre" in data:
+        usuario_extra.nombre = data["nombre"]; changed = True
+    if "apellido" in data:
+        usuario_extra.apellido = data["apellido"]; changed = True
+    if "correo" in data:
+        usuario_extra.correo = data["correo"]; changed = True
+        # sincroniza con auth_user.email
+        request.user.email = data["correo"]
+        request.user.save(update_fields=["email"])
+    if "usuario" in data:
+        usuario_extra.usuario = data["usuario"]; changed = True
+        # sincroniza con auth_user.username
+        request.user.username = data["usuario"]
+        request.user.save(update_fields=["username"])
+
+    # Permitir cambio de rol solo para administradores
+    # Considera admin si es superuser o si su rol se llama "Administrador"
+    es_admin = request.user.is_superuser or (getattr(usuario_extra.id_rol, "nombre", "") or "").lower() == "administrador"
+
+    if "id_rol" in data:
+        if not es_admin:
+            return Response({"detail": "No tienes permiso para cambiar el rol."}, status=status.HTTP_403_FORBIDDEN)
+        try:
+            nuevo_rol = Roles.objects.get(pk=data["id_rol"])
+            usuario_extra.id_rol = nuevo_rol
+            changed = True
+        except Roles.DoesNotExist:
+            return Response({"detail": "El rol especificado no existe."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if changed:
+        usuario_extra.save()
+
+    return Response(serialize(usuario_extra), status=status.HTTP_200_OK)
+
