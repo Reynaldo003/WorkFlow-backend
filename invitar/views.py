@@ -123,15 +123,15 @@ def invitar_usuario(request, id_equipo):
         smtp.quit()
 
     except Exception as ex:
-        logger.exception("Error enviando email con el Servicio de Correos")
+        logger.exception("Error enviando email")
         return Response({
-            "message": "Usuario creado y asociado al equipo, pero ocurrio un error al enviar el correo.",
-            "error": str(ex)
-        }, status=status.HTTP_207_MULTI_STATUS)
+            "ok": True,
+            "message": "Usuario invitado; falló el envío de correo.",
+            "smtp_error": str(ex)
+        }, status=207)
     
-    return Response({
-        "message": "Usuario invitado y correo enviado correctamente.",
-        "email": correo,
-        "equipo": equipo.nombre_equipo
-    }, status=status.HTTP_200_OK)
+    return Response({"ok": True, "message": "Usuario invitado y correo enviado."}, status=201)
 
+
+
+    
