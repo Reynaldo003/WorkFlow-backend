@@ -18,5 +18,5 @@ urlpatterns = [
     path('archivo/<int:id_archivo>/', obtener_archivo),
     path('archivo/<int:id_archivo>/estructura/', actualizar_estructura_archivo),
     path('equipos/<int:id_equipo>/tableros/', listar_archivos_equipo),
-    path('invitar/<int:id_equipo>', invitar_usuario),
+    path('invitar/<int:id_equipo>/', invitar_usuario),
 ]
