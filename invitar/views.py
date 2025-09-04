@@ -94,7 +94,7 @@ def invitar_usuario(request, id_equipo):
     remitente = 'workflow2709@gmail.com'
     destinatario = correo
     asunto = "Invitación a WorkFlow"
-    contra = "rzbb oxiw vaxo oynt"
+    contra = "rzbboxiwvaxooynt"
 
     if raw_password:
         mensaje = (
