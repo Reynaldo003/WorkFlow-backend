@@ -118,7 +118,7 @@ class Usuarios(models.Model):
 
 
 class UsuariosEquipos(models.Model):
-    id = models.AutoField(primary_key=True)  # ahora Django sabe que existe esta PK
+    id = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey(Usuarios, models.DO_NOTHING, db_column='id_usuario')
     id_equipo = models.ForeignKey(Equipos, models.DO_NOTHING, db_column='id_equipo')
 
