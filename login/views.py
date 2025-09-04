@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from core.models import Usuarios, Roles
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 import uuid
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
@@ -50,7 +50,7 @@ def profile(request):
             "nombre": u.nombre,
             "apellido": u.apellido,
             "correo": u.correo,
-            "contrasena": u.contrasena,
+            "contrasena": check_password(u.contrasena),
             "usuario": u.usuario,
             "id_rol": getattr(u.id_rol, "id_rol", None),
             "rol_nombre": getattr(u.id_rol, "nombre", None),
