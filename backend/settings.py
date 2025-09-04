@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from corsheaders.defaults import default_headers
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,22 +28,37 @@ SECRET_KEY = 'django-insecure-_903w8$ox6n&x)^w27*1jo4!w69%lh5squ^a*1nk2+12ck3yex
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+CORS_ALLOWED_ORIGINS = [
+    "https://work-flow-frontend.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://workflow-backend-production-991d.up.railway.app",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://work-flow-frontend.vercel.app",
+    "https://*.vercel.app",
+    "https://workflow-backend-production-991d.up.railway.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+]
+
 ALLOWED_HOSTS = [
     "work-flow-frontend.vercel.app",
     "workflow-backend-production-991d.up.railway.app",
     "localhost",
     "127.0.0.1"
 ]
-
-CORS_ALLOWED_ORIGINS = [
-    "https://work-flow-frontend.vercel.app",
-    "http://localhost:5173",
-    "http://127.0.0.1:8000",
-    "https://workflow-backend-production-991d.up.railway.app"
-]
-
-CORS_ALLOW_CREDENTIALS = True
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -56,16 +73,10 @@ INSTALLED_APPS = [
     'core',
     'login',
     'register',
-    'crea_equipo'
+    'crea_equipo',
+    'invitar',
 ]
-"""
-SIMPLE_JWT = {
-    'USER_ID_FIELD': 'id_usuario',
-    'USER_ID_CLAIM': 'user_id',
-    'AUTH_HEADER_TYPES': ('Bearer',),
-}
 
-"""
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -75,7 +86,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny',
     ]
 }
-
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
