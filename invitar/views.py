@@ -90,27 +90,26 @@ def invitar_usuario(request, id_equipo):
         logger.exception("Error creando usuario o asociándolo al equipo")
         return Response({"error": "Error al crear usuario", "detail": str(ex)}, status=500)
 
-    # --- 5) Envío de correo (no debe romper el flujo) ---
     remitente = 'workflow2709@gmail.com'
     destinatario = correo
-    asunto = "Invitación a WorkFlow"
-    contra = "rzbboxiwvaxooynt"
+    mensaje = f"""Ha sido invitado al equipo de trabajo: {equipo.nombre_equipo} en WorkFlow.\n
+    Su usuario es: {user}
+    Su contraseña temporal: {raw_password}
+    
+    Puede Inciar Sesion aqui: https://work-flow-frontend.vercel.app/loginregistro
 
-    if raw_password:
-        mensaje = (
-            f"Ha sido invitado al equipo: {equipo.nombre_equipo} en WorkFlow.\n\n"
-            f"Usuario: {user.username}\nContraseña temporal: {raw_password}\n\n"
-            "Inicie sesión: https://work-flow-frontend.vercel.app/loginregistro\n"
-            "Por seguridad, cambie su contraseña al entrar."
-        )
-    else:
-        mensaje = (
-            f"Ha sido añadido al equipo: {equipo.nombre_equipo} en WorkFlow.\n\n"
-            f"Usuario: {user.username}\n"
-            "Use sus credenciales existentes.\n\n"
-            "Inicie sesión: https://work-flow-frontend.vercel.app/loginregistro"
-        )
+    Por seguridad, al iniciar sesion cambie su contraseña."""
+    
+    if raw_password == None:
+        mensaje = f"""Ha sido añadido al equipo de trabajo: {equipo.nombre_equipo} en WorkFlow.\n
+        Use sus credenciales de acceso existentes para visualizar su nuevo equipo de trabajo.
 
+        Puede Inciar Sesion aqui: https://work-flow-frontend.vercel.app/loginregistro
+
+        Por seguridad, al iniciar sesion cambie su contraseña."""
+        
+    asunto = "Invitacion a WorkFlow"
+    contra = "gntx ppix dzkd cdxt"
     try:
         email = EmailMessage()
         email["From"] = remitente
@@ -118,17 +117,21 @@ def invitar_usuario(request, id_equipo):
         email["Subject"] = asunto
         email.set_content(mensaje)
 
-        smtp = smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15)
+        smtp = smtplib.SMTP_SSL('smtp.gmail.com')
         smtp.login(remitente, contra)
         smtp.sendmail(remitente, destinatario, email.as_string())
         smtp.quit()
-    except Exception as ex:
-        logger.exception("Error enviando email")
-        # Invitación OK, correo falló (típico si el host bloquea SMTP)
-        return Response({
-            "ok": True,
-            "message": "Usuario invitado; falló el envío de correo.",
-            "smtp_error": str(ex)
-        }, status=207)
 
-    return Response({"ok": True, "message": "Usuario invitado y correo enviado."}, status=201)
+    except Exception as ex:
+        logger.exception("Error enviando email con el Servicio de Correos")
+        return Response({
+            "message": "Usuario creado y asociado al equipo, pero ocurrio un error al enviar el correo.",
+            "error": str(ex)
+        }, status=status.HTTP_207_MULTI_STATUS)
+    
+    return Response({
+        "message": "Usuario invitado y correo enviado correctamente.",
+        "email": correo,
+        "equipo": equipo.nombre_equipo
+    }, status=status.HTTP_200_OK)
+
