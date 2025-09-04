@@ -39,23 +39,18 @@ def profile(request):
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def profile(request):
-    """
-    GET:  Devuelve el perfil del usuario logueado.
-    PATCH: Actualiza campos del perfil (nombre, apellido, correo, usuario).
-           Solo admin puede cambiar id_rol.
-    """
     try:
         usuario_extra = Usuarios.objects.select_related('id_rol').get(user=request.user)
     except Usuarios.DoesNotExist:
         return Response({"detail": "Perfil no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-    # Helper para serializar respuesta
     def serialize(u: Usuarios):
         return {
             "id_usuario": str(u.id_usuario),
             "nombre": u.nombre,
             "apellido": u.apellido,
             "correo": u.correo,
+            "contrasena": u.contrasena,
             "usuario": u.usuario,
             "id_rol": getattr(u.id_rol, "id_rol", None),
             "rol_nombre": getattr(u.id_rol, "nombre", None),
@@ -68,7 +63,7 @@ def profile(request):
     # PATCH
     data = request.data
     # Campos editables para cualquier usuario:
-    updatable = ["nombre", "apellido", "correo", "usuario"]
+    updatable = ["nombre", "apellido", "correo", "usuario", "contrasena"]
 
     # Actualiza campos básicos
     changed = False
@@ -83,12 +78,13 @@ def profile(request):
         request.user.save(update_fields=["email"])
     if "usuario" in data:
         usuario_extra.usuario = data["usuario"]; changed = True
-        # sincroniza con auth_user.username
         request.user.username = data["usuario"]
         request.user.save(update_fields=["username"])
+    if "contrasena" in data:
+        usuario_extra.contrasena = data["contrasena"]; changed = True
+        request.user.username = data["contrasena"]
+        request.user.save(update_fields=["password"])
 
-    # Permitir cambio de rol solo para administradores
-    # Considera admin si es superuser o si su rol se llama "Administrador"
     es_admin = request.user.is_superuser or (getattr(usuario_extra.id_rol, "nombre", "") or "").lower() == "administrador"
 
     if "id_rol" in data:
