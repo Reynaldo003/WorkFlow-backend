@@ -47,7 +47,7 @@ def invitar_usuario(request, id_equipo):
 
         role = Roles.objects.first()
         if not role:
-            role = Roles.objects.create(nombre_rol="Usuario")
+            role = Roles.objects.create(nombre_rol="Miembro")
 
         perfil, created_perfil = Usuarios.objects.get_or_create(
             user=user,
@@ -112,4 +112,3 @@ def invitar_usuario(request, id_equipo):
         "email": correo,
         "equipo": equipo.nombre_equipo
     }, status=status.HTTP_200_OK)
-
